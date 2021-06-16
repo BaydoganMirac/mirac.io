@@ -34,24 +34,16 @@ function Top(x,y,r, color){
     }
 }
 
-window.onload = async function(){
-let client =  new Colyseus.Client('ws://localhost:3000');
-const MyRoom = await client.joinOrCreate("oda1", {
-    name: "mirac"
-  });
-console.log(MyRoom.sessionId, "joined", MyRoom.name);
-MyRoom.onMessage('welcome', (message) =>{
-    console.log(message)
-});
-MyRoom.send('myState', {
-    pos: ME.pos,
-    r: ME.r,
-    color: ME.color
-})
-MyRoom.onMessage('clientStateBroadcast', (message)=>{
-    console.log(message)
-})
-}
+const client =  new Colyseus.Client('ws://localhost:3000');
+const MyRoom = client.joinOrCreate("oda1", {
+    name: "LAN ODA BURA"
+  }).then((room)=>{
+        room.onMessage('welcome', (message) => {console.log(message + ' hoşgeldin')})
+        room.send('myPosition', {x:ME.pos.x, y:ME.pos.y, r:ME.r, color:ME.color, id:room.sessionId, name:'mehmet'});
+        room.onMessage('otherState', (message) => {console.log(message)})
+  }).catch((err) => console.log(err));
+
+
 function setup(){
     createCanvas(windowWidth,windowHeight);
 

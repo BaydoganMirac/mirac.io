@@ -1,13 +1,14 @@
 const colyseus = require('colyseus');
-
+let Users = [];
 class MyRoom extends colyseus.Room {
     // When room is initialized
     onCreate (options) { 
-        this.onMessage('myState', (client, message) =>{
+    
+        this.onMessage('myPosition', (client, message) =>{
             client.userData = message;
-            console.log(client.userData)
-            client.broadcast('clientStateBroadcast', client.userData)
-
+            Users.push(message);
+            console.log(JSON.stringify(message.x))
+            this.broadcast('otherState', message)
         })
     }
 
