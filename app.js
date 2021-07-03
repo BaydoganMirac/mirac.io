@@ -2,7 +2,7 @@ const colyseus = require("colyseus");
 const http = require("http");
 const express = require("express");
 const { MyRoom } = require("./room");
-const port = process.env.port || 80;
+const port = process.env.port || 8080;
 const oda1 =  MyRoom;
 const app = express();
 app.use(express.json());
