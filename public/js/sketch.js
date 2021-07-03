@@ -32,7 +32,7 @@ function Top(x,y,r, color, id){
 }
 
 
-const client =  new Colyseus.Client('ws://mirac-io.vercel.app/');
+const client =  new Colyseus.Client('wss://mirac-io.vercel.app/');
 var ME = null;
 var MyRoom;
 let zoom = 1;
