@@ -15,3 +15,4 @@ gameServer.define('oda1', oda1)
 
 
 gameServer.listen(port);
+console.log(port, 'Çalışmaya Başladı')
