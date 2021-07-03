@@ -32,7 +32,7 @@ function Top(x,y,r, color, id){
 }
 
 
-const client =  new Colyseus.Client('ws://localhost:3000');
+const client =  new Colyseus.Client('ws:https://mirac-io.vercel.app/');
 var ME = null;
 var MyRoom;
 let zoom = 1;
@@ -98,7 +98,7 @@ function draw(){
         item.show()
     })
     ME.show();
-    //ME.move() 
+    ME.move() 
     fill(255,0,0);
     textSize(floor(ME.r));
     textAlign(CENTER, CENTER);
