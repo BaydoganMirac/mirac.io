@@ -1,7 +1,7 @@
 const colyseus = require("colyseus");
 const http = require("http");
 const express = require("express");
-const { MyRoom } = require("./MyRoom");
+const { MyRoom } = require("./room");
 const port = process.env.port || 3000;
 const oda1 =  MyRoom;
 const app = express();

@@ -1,13 +1,9 @@
-
-let TOP  =  [];
-let ME;
-let zoom = 1;
-
-function Top(x,y,r, color){
+function Top(x,y,r, color, id){
     this.pos = createVector(x, y);
     this.r = r;
     this.color = color;
     this.area = PI * this.r * this.r;
+    this.id = id;
     this.vector = createVector(0, 0);
 
     this.show = function(){
@@ -25,64 +21,91 @@ function Top(x,y,r, color){
         }
     }
 
-    this.move = function(){
-        let goVector = createVector(mouseX - width / 2, mouseY - height / 2);
-        goVector.div(50);
-        goVector.limit(3);
-        this.vector.lerp(goVector, 0.2);
-        this.pos.add(this.vector)
-    }
+    this.move = function() {
+        var newvel = createVector(mouseX - innerWidth / 2, mouseY - innerHeight / 2);
+        newvel.div(50);
+        //newvel.setMag(3);
+        newvel.limit(2);
+        this.vector.lerp(newvel, 0.2);
+        this.pos.add(this.vector);
+    };
 }
+
 
 const client =  new Colyseus.Client('ws://localhost:3000');
-const MyRoom = client.joinOrCreate("oda1", {
-    name: "LAN ODA BURA"
-  }).then((room)=>{
-        room.onMessage('welcome', (message) => {console.log(message + ' hoşgeldin')})
-        room.send('myPosition', {x:ME.pos.x, y:ME.pos.y, r:ME.r, color:ME.color, id:room.sessionId, name:'mehmet'});
-        room.onMessage('otherState', (message) => {console.log(message)})
-  }).catch((err) => console.log(err));
-
-
-function setup(){
-    createCanvas(windowWidth,windowHeight);
-
-    for(let i = 0; i < 100; i++){
-        let top = new Top(random(-window.innerWidth, window.innerWidth), random(-window.innerHeight, window.innerHeight), random(5, 10),  color(random(0, 254), random(0, 254),random(0, 254)));
-        TOP.push(top)
-    }
-    ME = new Top(windowWidth/2, windowHeight/2, 11, color(255,255,255))
-
+var ME = null;
+var MyRoom;
+let zoom = 1;
+var TUSER = [];
+async function setup(){
+    createCanvas(1920,1080);
+    ME = new Top(Math.random()*100, Math.random()*100, 10, color(255,255,255), client.id);
+    MyRoom = await client.joinOrCreate("oda1", {x: ME.pos.x, y: ME.pos.y, r: ME.r,key:client.id, color: ME.color});
+    MyRoom.onMessage('welcome', (message) =>{
+        console.log(message)
+    })
+    console.log(ME.r)
+    MyRoom.onMessage('userInfo', (message)=>{
+        console.log(message)
+        Object.keys(message).forEach(key => {
+            if(key != client.id){
+                TUSER.push(new Top(message[key].x, message[key].y, message[key].r, message[key].color, key))
+                console.log('yeni Kullanıcı geldi')
+            }
+        });
+    })
+    MyRoom.state.players.onAdd = (player, key) => {
+        console.log(player, "has been added at", key);
     
+        // add your player entity to the game world!
+    
+        // If you want to track changes on a child object inside a map, this is a common pattern:
+        player.onChange = function(changes) {
+            changes.forEach(change => {
+                console.log(change.field);
+                console.log(change.value);
+                console.log(change.previousValue);
+            })
+        };
+    
+        // force "onChange" to be called immediatelly
+        player.triggerAll();
+    };
+    setInterval(() => {
+        MyRoom.send('myPosition',{x: ME.pos.x, y: ME.pos.y, r: ME.r, color: ME.color, id:client.id} )
+    }, 100);
+    MyRoom.onStateChange((state) => {
+        console.log(state)
+    });
+    MyRoom.onMessage('userLeft',(message) =>{
+        TUSER.forEach((item, index) =>{
+            if(item.id === message.sessionId){
+                TUSER.splice(index,1)
+            }
+        })
+    })
 }
+
 
 function draw(){
     background(0)
     translate(windowWidth/2, windowHeight/2)
-    let Nzoom = 99 / ME.r;
+    let Nzoom = 50 / ME.r;
     zoom = lerp(zoom, Nzoom, 0.01);
     scale(zoom)
     translate(-ME.pos.x, -ME.pos.y)
-    
-    for(let i = TOP.length-1; i >= 0; i--){
-        TOP[i].show();
-        if(ME.eat(TOP[i])){
-            TOP.splice(i, 1)
-        }
-    }
-    if(TOP.length < 100){
-        TOP.push(new Top(random(-window.innerWidth, window.innerWidth), random(-window.innerHeight, window.innerHeight), random(5, 10),  color(random(0, 254), random(0, 254),random(0, 254))))
-    }
-   
+    TUSER.forEach((item, index)=>{
+        item.show()
+    })
     ME.show();
-    ME.move()
+    //ME.move() 
     fill(255,0,0);
     textSize(floor(ME.r));
     textAlign(CENTER, CENTER);
     text(floor(ME.r*2)-22, ME.pos.x-floor(ME.r/2), ME.pos.y+floor(ME.r/2))
+
 }
 
 function windowResized() {
     resizeCanvas(windowWidth, windowHeight);
 }
-
